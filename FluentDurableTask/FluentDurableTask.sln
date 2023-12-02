@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FluentDurableTask.Core", "src\FluentDurableTask.Core\FluentDurableTask.Core.csproj", "{852D60A9-8E4E-4583-B2DE-743A6ADF92DA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FluentDurableTask.SourceGenerator", "src\FluentDurableTask.SourceGenerator\FluentDurableTask.SourceGenerator.csproj", "{8CA89F72-5CCE-454C-8219-BCC916DD9BE6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FluentDurableTask.DebugHelper", "src\FluentDurableTask.DebugHelper\FluentDurableTask.DebugHelper.csproj", "{5B1ADC61-9E2C-42BC-8063-C60B7195F491}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentDurableTask", "src\FluentDurableTask\FluentDurableTask.csproj", "{94E25170-C4AA-4EDA-BCED-1A529771B567}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug Generator|Any CPU = Debug Generator|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{852D60A9-8E4E-4583-B2DE-743A6ADF92DA}.Debug Generator|Any CPU.ActiveCfg = Debug Generator|Any CPU
+		{852D60A9-8E4E-4583-B2DE-743A6ADF92DA}.Debug Generator|Any CPU.Build.0 = Debug Generator|Any CPU
+		{852D60A9-8E4E-4583-B2DE-743A6ADF92DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{852D60A9-8E4E-4583-B2DE-743A6ADF92DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{852D60A9-8E4E-4583-B2DE-743A6ADF92DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{852D60A9-8E4E-4583-B2DE-743A6ADF92DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CA89F72-5CCE-454C-8219-BCC916DD9BE6}.Debug Generator|Any CPU.ActiveCfg = Debug Generator|Any CPU
+		{8CA89F72-5CCE-454C-8219-BCC916DD9BE6}.Debug Generator|Any CPU.Build.0 = Debug Generator|Any CPU
+		{8CA89F72-5CCE-454C-8219-BCC916DD9BE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CA89F72-5CCE-454C-8219-BCC916DD9BE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CA89F72-5CCE-454C-8219-BCC916DD9BE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CA89F72-5CCE-454C-8219-BCC916DD9BE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B1ADC61-9E2C-42BC-8063-C60B7195F491}.Debug Generator|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B1ADC61-9E2C-42BC-8063-C60B7195F491}.Debug Generator|Any CPU.Build.0 = Debug|Any CPU
+		{5B1ADC61-9E2C-42BC-8063-C60B7195F491}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B1ADC61-9E2C-42BC-8063-C60B7195F491}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B1ADC61-9E2C-42BC-8063-C60B7195F491}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B1ADC61-9E2C-42BC-8063-C60B7195F491}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94E25170-C4AA-4EDA-BCED-1A529771B567}.Debug Generator|Any CPU.ActiveCfg = Debug|Any CPU
+		{94E25170-C4AA-4EDA-BCED-1A529771B567}.Debug Generator|Any CPU.Build.0 = Debug|Any CPU
+		{94E25170-C4AA-4EDA-BCED-1A529771B567}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94E25170-C4AA-4EDA-BCED-1A529771B567}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94E25170-C4AA-4EDA-BCED-1A529771B567}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94E25170-C4AA-4EDA-BCED-1A529771B567}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D554C9DF-4905-4E12-AFD3-D59384DC2AE2}
+	EndGlobalSection
+EndGlobal
