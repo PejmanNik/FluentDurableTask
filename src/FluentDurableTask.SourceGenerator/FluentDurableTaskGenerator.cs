@@ -15,9 +15,13 @@ public class FluentDurableTaskGenerator : ISourceGenerator
         if (context.SyntaxReceiver is not OrchestrationDefinitionSyntaxReceiver receiver)
             return;
 
+       
+
         foreach (var classSyntax in receiver.Classes)
         {
-            var compilationUnitSyntax = GenerateInterface.Generate(context, classSyntax);
+            var semanticModel = context.Compilation.GetSemanticModel(classSyntax.SyntaxTree);
+            
+            var compilationUnitSyntax = GenerateInterface.Generate(semanticModel, classSyntax);
            
             var newCode = compilationUnitSyntax.NormalizeWhitespace().ToFullString();
             context.AddSource($"{classSyntax.Identifier}.g.cs", SourceText.From(newCode, Encoding.UTF8));

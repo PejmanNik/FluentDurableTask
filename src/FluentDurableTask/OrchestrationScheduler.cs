@@ -1,9 +1,7 @@
 ﻿using DurableTask.Core;
-using FluentDurableTask.Core;
-using System.Linq.Expressions;
+using System.Reflection;
 
 namespace FluentDurableTask;
-
 
 public class OrchestrationScheduler<TReturn, TInput>
 {
@@ -29,6 +27,9 @@ public class OrchestrationSchedulerWithInput<TReturn, TInput>
     private readonly TInput _input;
     private readonly string? _version;
     private readonly DateTime? _startAt;
+
+    private static readonly MethodInfo? _createOrchestrationMethod = typeof(TaskHubClient).
+        GetMethod("InternalCreateOrchestrationInstanceWithRaisedEventAsync", BindingFlags.NonPublic);
 
     private OrchestrationSchedulerWithInput(
         TaskHubClient client,
@@ -59,34 +60,43 @@ public class OrchestrationSchedulerWithInput<TReturn, TInput>
         return Create(_client, _name, _input, version, _startAt);
     }
 
-    public Task<OrchestrationInstance> ExecuteAsync()
+    public OrchestrationSchedulerWithInput<TReturn, TInput> WithDelay(DateTime startAt)
     {
-        return _client.CreateOrchestrationInstanceAsync(_name, _version, _input);
-    }
-}
-
-public class DurableTaskClient
-{
-    private readonly TaskHubClient _taskHubClient;
-
-    public DurableTaskClient(TaskHubClient taskHubClient)
-    {
-        this._taskHubClient = taskHubClient;
+        return Create(_client, _name, _input, _version, startAt);
     }
 
-
-    public OrchestrationScheduler<TReturn, TInput> ScheduleOrchestration<TReturn, TInput>(
-        Expression<Func<IOrchestrations, ITaskOrchestration<TReturn, TInput>>> selector)
+    private Task<OrchestrationInstance> InvokeCreateOrchestrationMethod()
     {
-        if (selector.Body is not MemberExpression member)
+        try
         {
-            throw new ArgumentException(string.Format(
-                "Expression '{0}' is not valid.", selector.ToString()));
+            var result = _createOrchestrationMethod?
+                .Invoke(_client, new object?[] {
+                    _name,           //string orchestrationName
+                    _version ?? "",  //string orchestrationVersion
+                    null,            //string orchestrationInstanceId
+                    _input,          //object orchestrationInput
+                    null,            //IDictionary< string, string> orchestrationTags
+                    null,            //OrchestrationStatus[] dedupeStatuses
+                    null,            //string eventName
+                    null,            //object eventData
+                    _startAt         //DateTime? startAt
+                });
+
+            if (result is Task<OrchestrationInstance> task)
+                return task;
+        }
+        catch
+        {
+
         }
 
-        return new OrchestrationScheduler<TReturn, TInput>(
-            _taskHubClient,
-            member.Member.Name);
+        //Todo: add logging for ignoring the start time
+        return _client.CreateOrchestrationInstanceAsync(_name, _version, _input);
+    }
+
+    public Task<OrchestrationInstance> ExecuteAsync()
+    {
+        return InvokeCreateOrchestrationMethod();
     }
 }
 

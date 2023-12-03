@@ -10,11 +10,10 @@ namespace FluentDurableTask.SourceGenerator;
 public static class GenerateInterface
 {
     public static CompilationUnitSyntax Generate(
-        GeneratorExecutionContext context,
+        SemanticModel semanticModel,
         ClassDeclarationSyntax classSyntax)
     {
-        var semanticModel = context.Compilation.GetSemanticModel(classSyntax.SyntaxTree);
-        var interfaces = new List<MemberDeclarationSyntax>();
+
 
         // extract Configure methods from the class
         var configureMethod = classSyntax.DescendantNodes()
@@ -22,36 +21,49 @@ public static class GenerateInterface
             .FirstOrDefault(x => x.Identifier.ToString() == nameof(IOrchestrationDefinition.Configure))
             ?? throw new InvalidOperationException($"Class {classSyntax.Identifier} does not implement {nameof(IOrchestrationDefinition)}");
 
-        var orchestrations = configureMethod.DescendantNodes().OfType<ExpressionStatementSyntax>();
-        foreach (var orchestration in orchestrations)
-        {
-            var invocations = orchestration.DescendantNodes().OfType<InvocationExpressionSyntax>();
-            var invocationsX = BuildInvocationInfos(semanticModel, invocations);
-            var resultInterface = BuildOrchestrationInterface(invocationsX);
-            interfaces.Add(resultInterface);
-        }
+        var interfaces = PP(configureMethod, semanticModel);
 
+        return BuildR(AddNameSpace(classSyntax, interfaces.ToArray()));
+    }
 
+    private static MemberDeclarationSyntax[] AddNameSpace(ClassDeclarationSyntax classSyntax, MemberDeclarationSyntax[] members)
+    {
         var namespaceDeclaration = classSyntax.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
-       // var namespaceDeclaration2 = classSyntax.Ancestors().OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault();
-        var mem = interfaces.ToArray();
         if (namespaceDeclaration != null)
         {
-            mem = new[] {
-            SyntaxFactory.NamespaceDeclaration(namespaceDeclaration.Name)
-            .AddMembers(interfaces.ToArray())
-            };
+            return [
+                SyntaxFactory
+                    .NamespaceDeclaration(namespaceDeclaration.Name)
+                    .AddMembers(members)
+             ];
         }
 
+        return members;
+    }
+
+    private static CompilationUnitSyntax BuildR(MemberDeclarationSyntax[] members)
+    {
         var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(nameof(FluentDurableTask)));
 
         return SyntaxFactory.CompilationUnit()
             .AddUsings(usingDirective)
-            .AddMembers(mem);
+            .AddMembers(members);
     }
 
+    private static IEnumerable<InterfaceDeclarationSyntax> PP(MethodDeclarationSyntax configureMethod, SemanticModel semanticModel)
+    {
+        var orchestrations = configureMethod.DescendantNodes().OfType<ExpressionStatementSyntax>();
+        foreach (var orchestration in orchestrations)
+        {
+            var orchestrationsInfo = BuildOrchestrationsInfo(semanticModel, orchestration);
+            var resultInterface = BuildOrchestrationInterface(orchestrationsInfo);
 
-    class InvocationInfo(string methodName, string name, string returnType, string inputType)
+            if (resultInterface is not null)
+                yield return resultInterface;
+        }
+    }
+
+    class OrchestrationInfo(string methodName, string name, string returnType, string inputType)
     {
         public string MethodName => methodName;
         public string Name => name;
@@ -59,10 +71,12 @@ public static class GenerateInterface
         public string InputType => inputType;
     }
 
-    private static IEnumerable<InvocationInfo> BuildInvocationInfos(
+    private static IEnumerable<OrchestrationInfo> BuildOrchestrationsInfo(
         SemanticModel semanticModel,
-        IEnumerable<InvocationExpressionSyntax> invocations)
+        ExpressionStatementSyntax orchestration)
     {
+        var invocations = orchestration.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
         foreach (var invocation in invocations)
         {
             if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
@@ -86,19 +100,30 @@ public static class GenerateInterface
                 var returnType = typeArguments[0].ToString();
                 var inputType = typeArguments[1].ToString();
 
-                yield return new InvocationInfo(methodName, name, returnType, inputType);
+                yield return new OrchestrationInfo(methodName, name, returnType, inputType);
             }
         }
     }
 
-    private static InterfaceDeclarationSyntax? BuildOrchestrationInterface(IEnumerable<InvocationInfo> invocations)
+    private static InterfaceDeclarationSyntax? BuildOrchestrationInterface(
+        IEnumerable<OrchestrationInfo> orchestrationsInfo)
     {
-        var activityInterfaces = new List<InterfaceDeclarationSyntax>();
-        var activityInvocations = invocations
+        var activityInterfaces = new List<MemberDeclarationSyntax>();
+        var activityInvocations = orchestrationsInfo
             .Where(x => x.MethodName == nameof(ITaskOrchestrationBuilder.ITaskActivityBuilder.Activity));
 
         foreach (var activityInvocation in activityInvocations)
         {
+            var readOnlyProperty = SyntaxFactory.PropertyDeclaration(
+                SyntaxFactory.ParseTypeName(
+                      $"{nameof(ITaskActivity<int, int>)}<{activityInvocation.ReturnType}, {activityInvocation.InputType}>"), activityInvocation.Name)
+                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                 .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
+                     SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))))
+                 );
+            activityInterfaces.Add(readOnlyProperty);
+
             activityInterfaces.Add(SyntaxFactory
                 .InterfaceDeclaration($"I{activityInvocation.Name}")
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
@@ -110,9 +135,19 @@ public static class GenerateInterface
                 ));
         }
 
-        var orchInvocations = invocations
+        var orchInvocations = orchestrationsInfo
             .FirstOrDefault(x => x.MethodName == nameof(ITaskOrchestrationBuilder.Orchestration));
         if (orchInvocations is null) return null;
+
+        activityInterfaces.Add(SyntaxFactory
+            .InterfaceDeclaration($"IOrchestration")
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+            .WithBaseList(SyntaxFactory.BaseList(
+                SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
+                SyntaxFactory.SimpleBaseType(
+                SyntaxFactory.ParseTypeName(
+                  $"{nameof(ITaskOrchestration<int, int, IOrchestrationBlueprint>)}<{orchInvocations.ReturnType}, {orchInvocations.InputType}, I{orchInvocations.Name}>"))))
+            ));
 
         return SyntaxFactory
                 .InterfaceDeclaration($"I{orchInvocations.Name}")
@@ -121,7 +156,7 @@ public static class GenerateInterface
                     SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
                     SyntaxFactory.SimpleBaseType(
                     SyntaxFactory.ParseTypeName(
-                        $"{nameof(ITaskOrchestration<int, int>)}<{orchInvocations.ReturnType}, {orchInvocations.InputType}>"))))
+                        $"{nameof(IOrchestrationBlueprint)}"))))
                 )
                 .AddMembers(activityInterfaces.ToArray());
     }
