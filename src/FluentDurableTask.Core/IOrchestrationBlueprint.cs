@@ -1,6 +1,5 @@
-﻿namespace FluentDurableTask;
+﻿namespace FluentDurableTask.Core;
 
 public interface IOrchestrationBlueprint
 {
-
 }

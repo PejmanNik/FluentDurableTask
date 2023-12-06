@@ -1,4 +1,6 @@
-﻿using SomePackage.Core;
+﻿using DurableTask.Core;
+using FluentDurableTask.Core;
+using SomePackage.Core;
 
 namespace FluentDurableTask.DebugHelper;
 
@@ -6,7 +8,7 @@ public class OrchestrationProfile2 : IOrchestrationDefinition
 {
     public void Configure(ITaskOrchestrationBuilder builder)
     {
-        builder.Orchestration<string, int>("GreetingsOrchestration3")
+        builder.Orchestration<string, Guid>("GreetingsOrchestration3")
             .Activity<DataParam, string>("DoX3")
             .Activity<int, string>("DoY3");
 
@@ -16,12 +18,17 @@ public class OrchestrationProfile2 : IOrchestrationDefinition
     }
 }
 
+public class DurableTaskClient : BaseDurableTaskClient<IDurableOrchestrations>
+{
+    public DurableTaskClient(TaskHubClient taskHubClient) : base(taskHubClient)
+    {
+    }
+}
+
 public class XX : IGreetingsOrchestration3.IOrchestration
 {
-    public Task<string> Execute(TaskOrchestrationContext<IGreetingsOrchestration3> context, int input)
+    public Task<string> Execute(TaskOrchestrationContext<IGreetingsOrchestration3> context, Guid input)
     {
         context.ScheduleActivity(x => x.DoX3);
-
-        return Task.FromResult("Hello");
     }
 }

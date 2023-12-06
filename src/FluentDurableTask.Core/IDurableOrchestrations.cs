@@ -1,5 +1,5 @@
 ﻿namespace FluentDurableTask.Core;
 
-public partial interface IOrchestrations
+public interface IDurableOrchestrations
 {
 }
