@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\FluentDurableTask.Core\FluentDurableTask.Core.csproj" />
+	  <ProjectReference Include="..\FluentDurableTask.Core\FluentDurableTask.Core.csproj" />
 	</ItemGroup>
 
 </Project>

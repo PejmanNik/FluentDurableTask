@@ -1,8 +1,9 @@
 ﻿using DurableTask.Core;
 using FluentDurableTask.Core;
+using System;
 using System.Linq.Expressions;
 
-namespace FluentDurableTask;
+namespace FluentDurableTask.Core;
 
 public class BaseDurableTaskClient<TOrchestrations>
 {
@@ -12,7 +13,6 @@ public class BaseDurableTaskClient<TOrchestrations>
     {
         this._taskHubClient = taskHubClient;
     }
-
 
     public OrchestrationScheduler<TReturn, TInput> ScheduleOrchestration<TReturn, TInput, TBlueprint>(
         Expression<Func<TOrchestrations, ITaskOrchestration<TReturn, TInput, TBlueprint>>> selector)

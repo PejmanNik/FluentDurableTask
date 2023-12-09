@@ -1,7 +1,9 @@
 ﻿using DurableTask.Core;
+using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
-namespace FluentDurableTask;
+namespace FluentDurableTask.Core;
 
 public class OrchestrationScheduler<TReturn, TInput>
 {
@@ -94,7 +96,7 @@ public class OrchestrationSchedulerWithInput<TReturn, TInput>
         return _client.CreateOrchestrationInstanceAsync(_name, _version, _input);
     }
 
-    public Task<OrchestrationInstance> ExecuteAsync()
+    public Task<OrchestrationInstance> ScheduleAsync()
     {
         return InvokeCreateOrchestrationMethod();
     }

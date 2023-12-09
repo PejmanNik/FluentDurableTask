@@ -30,7 +30,9 @@ public static class GenerateInterface
 
         return SyntaxFactory
             .NamespaceDeclaration(SyntaxFactory.ParseName(nameof(FluentDurableTask)))
-            .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName($"{nameof(FluentDurableTask)}.{nameof(FluentDurableTask.Core)}")))
+            .AddUsings(SyntaxFactory.UsingDirective(
+                SyntaxFactory.ParseName($"{nameof(FluentDurableTask)}.{nameof(FluentDurableTask.Core)}"))
+            )
             .AddMembers(orchestrationBlueprints.ToArray())
             .AddMembers(durableOrchestrations);
     }

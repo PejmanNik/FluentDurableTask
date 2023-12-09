@@ -18,17 +18,11 @@ public class OrchestrationProfile2 : IOrchestrationDefinition
     }
 }
 
-public class DurableTaskClient : BaseDurableTaskClient<IDurableOrchestrations>
-{
-    public DurableTaskClient(TaskHubClient taskHubClient) : base(taskHubClient)
-    {
-    }
-}
-
 public class XX : IGreetingsOrchestration3.IOrchestration
 {
     public Task<string> Execute(TaskOrchestrationContext<IGreetingsOrchestration3> context, Guid input)
     {
         context.ScheduleActivity(x => x.DoX3);
+        return "dd";
     }
 }

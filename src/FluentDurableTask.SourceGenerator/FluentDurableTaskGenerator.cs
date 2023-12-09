@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 using System.Text;
 
 namespace FluentDurableTask.SourceGenerator;
@@ -21,6 +22,10 @@ public class FluentDurableTaskGenerator : ISourceGenerator
             var code = durableOrchestrationsSyntax.NormalizeWhitespace().ToFullString();
             context.AddSource($"{classSyntax.Identifier}.g.cs", SourceText.From(code, Encoding.UTF8));
         }
+
+        var durableTaskClientSyntax = DurableTaskClientBuilder.Build();
+        var durableTaskClientCode = durableTaskClientSyntax.NormalizeWhitespace().ToFullString();
+        context.AddSource($"DurableTaskClient.g.cs", SourceText.From(durableTaskClientCode, Encoding.UTF8));
     }
 
     public void Initialize(GeneratorInitializationContext context)
@@ -28,10 +33,10 @@ public class FluentDurableTaskGenerator : ISourceGenerator
         context.RegisterForSyntaxNotifications(() => new OrchestrationDefinitionSyntaxReceiver());
 
 #if DEBUG_GENERATOR
-            if (!Debugger.IsAttached)
-            {
-                Debugger.Launch();
-            }
+        if (!Debugger.IsAttached)
+        {
+            Debugger.Launch();
+        }
 #endif
     }
 }

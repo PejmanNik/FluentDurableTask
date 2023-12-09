@@ -23,11 +23,8 @@ public static class DurableOrchestrationsPropertyBuilder
                 continue;
             }
 
-            //var type = $"{nameof(ITaskOrchestration<int, int, IOrchestrationBlueprint>)}" +
-            //    $"<{orchestration.ReturnType}, {orchestration.InputType}, I{orchestration.Name}>";
-
             yield return SyntaxFactory.PropertyDeclaration(
-                     SyntaxFactory.ParseTypeName($"I{orchestration.Name}"),
+                     SyntaxFactory.ParseTypeName($"I{orchestration.Name}.IOrchestration"),
                      orchestration.Name
                   )
                  .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
