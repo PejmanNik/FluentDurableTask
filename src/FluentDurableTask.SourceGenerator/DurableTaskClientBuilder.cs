@@ -1,12 +1,13 @@
 ﻿using FluentDurableTask.Core;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Reflection.Metadata;
 
 namespace FluentDurableTask.SourceGenerator;
 
 public static class DurableTaskClientBuilder
 {
+    public const string DurableTaskClient = "DurableTaskClient";
+
     public static NamespaceDeclarationSyntax Build()
     {
         var parameterList = SyntaxFactory.ParameterList(
@@ -18,7 +19,7 @@ public static class DurableTaskClientBuilder
         );
 
         // Create constructor declaration
-        var constructorDeclaration = SyntaxFactory.ConstructorDeclaration("DurableTaskClient")
+        var constructorDeclaration = SyntaxFactory.ConstructorDeclaration(DurableTaskClient)
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(parameterList)
             .WithInitializer(
@@ -27,7 +28,7 @@ public static class DurableTaskClientBuilder
              )
             .WithBody(SyntaxFactory.Block());
 
-        var c = SyntaxFactory.ClassDeclaration("DurableTaskClient")
+        var c = SyntaxFactory.ClassDeclaration(DurableTaskClient)
             .WithModifiers(SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.PartialKeyword)
@@ -36,7 +37,7 @@ public static class DurableTaskClientBuilder
                 SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
                 SyntaxFactory.SimpleBaseType(
                 SyntaxFactory.ParseTypeName(
-                    $"{nameof(BaseDurableTaskClient<int>)}<IDurableOrchestrations>"))))
+                    $"{nameof(BaseDurableTaskClient<IDurableOrchestrations>)}<{nameof(IDurableOrchestrations)}>"))))
             )
             .AddMembers(constructorDeclaration);
 

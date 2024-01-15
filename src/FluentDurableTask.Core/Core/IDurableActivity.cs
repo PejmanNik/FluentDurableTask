@@ -7,7 +7,7 @@ public class TaskActivityContext
 
 }
 
-public interface ITaskActivity<TResult, TInput>
+public interface IDurableActivity<TResult, TInput>
 {
     Task<TResult> Execute(TaskActivityContext context, TInput input);
 }

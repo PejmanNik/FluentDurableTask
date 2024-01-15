@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace FluentDurableTask.SourceGenerator;
 
-public class OrchestrationInfo(
+public class TaskInfo(
     string methodName,
     string name,
     string returnType,
@@ -17,27 +17,27 @@ public class OrchestrationInfo(
     public string InputType => inputType;
 }
 
-public class OrchestrationDefinition(
-    IEnumerable<OrchestrationInfo> orchestrationsInfo)
+public class OrchestrationInfo(
+    IEnumerable<TaskInfo> tasksInfo)
 {
-    public IEnumerable<OrchestrationInfo> OrchestrationsInfo => orchestrationsInfo;
+    public IEnumerable<TaskInfo> TasksInfo => tasksInfo;
 }
 
-public static class BuildOrchestrationDefinition
+public static class OrchestrationInfoBuilder
 {
-    public static IEnumerable<OrchestrationDefinition> BuildFromConfigureMethod(
+    public static IEnumerable<OrchestrationInfo> BuildFromConfigureMethod(
         MethodDeclarationSyntax configureMethod,
         SemanticModel semanticModel)
     {
         var orchestrations = configureMethod.DescendantNodes().OfType<ExpressionStatementSyntax>();
         foreach (var orchestration in orchestrations)
         {
-            var info = BuildOrchestrationInfo(semanticModel, orchestration);
-            yield return new OrchestrationDefinition(info);
+            var info = Build(semanticModel, orchestration);
+            yield return new OrchestrationInfo(info);
         }
     }
 
-    private static IEnumerable<OrchestrationInfo> BuildOrchestrationInfo(
+    private static IEnumerable<TaskInfo> Build(
         SemanticModel semanticModel,
         ExpressionStatementSyntax orchestration)
     {
@@ -66,7 +66,7 @@ public static class BuildOrchestrationDefinition
                 var returnType = typeArguments[0].ToString();
                 var inputType = typeArguments[1].ToString();
 
-                yield return new OrchestrationInfo(methodName, name, returnType, inputType);
+                yield return new TaskInfo(methodName, name, returnType, inputType);
             }
         }
     }

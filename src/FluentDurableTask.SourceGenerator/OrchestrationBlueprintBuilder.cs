@@ -8,13 +8,26 @@ namespace FluentDurableTask.SourceGenerator;
 
 public static class OrchestrationBlueprintBuilder
 {
-    public static IEnumerable<MemberDeclarationSyntax> Build(
-        IEnumerable<OrchestrationDefinition> orchestrationDefinitions)
+    public static NamespaceDeclarationSyntax Build(
+        IEnumerable<OrchestrationInfo> orchestrationDefinitions)
+    {
+        var orchestrationsInterfaces = BuildOrchestrationsInterface(orchestrationDefinitions);
+
+        return SyntaxFactory
+            .NamespaceDeclaration(SyntaxFactory.ParseName(nameof(FluentDurableTask)))
+            .AddUsings(SyntaxFactory.UsingDirective(
+                SyntaxFactory.ParseName($"{nameof(FluentDurableTask)}.{nameof(FluentDurableTask.Core)}"))
+            )
+            .AddMembers(orchestrationsInterfaces.ToArray());
+    }
+
+    private static IEnumerable<InterfaceDeclarationSyntax> BuildOrchestrationsInterface(
+        IEnumerable<OrchestrationInfo> orchestrationDefinitions)
     {
         foreach (var orchestrationDefinition in orchestrationDefinitions)
         {
             var blueprint = BuildOrchestrationBlueprintInterface(
-                orchestrationDefinition.OrchestrationsInfo);
+                orchestrationDefinition.TasksInfo);
 
             if (blueprint is not null)
             {
@@ -24,7 +37,7 @@ public static class OrchestrationBlueprintBuilder
     }
 
     private static InterfaceDeclarationSyntax? BuildOrchestrationBlueprintInterface(
-        IEnumerable<OrchestrationInfo> orchestrationsInfo)
+        IEnumerable<TaskInfo> orchestrationsInfo)
     {
         var orchestration = orchestrationsInfo
             .FirstOrDefault(x => x.MethodName == nameof(ITaskOrchestrationBuilder.Orchestration));
@@ -37,36 +50,18 @@ public static class OrchestrationBlueprintBuilder
         var activities = orchestrationsInfo
            .Where(x => x.MethodName == nameof(ITaskOrchestrationBuilder.ITaskActivityBuilder.Activity));
 
-        var activityProperties = BuildActivityProperties(activities);
         var activityInterfaces = BuildActivityInterfaces(activities);
-        var orchestrationInterface = BuildOrchestrationInterface(orchestration);
+        return BuildOrchestrationInterface(orchestration)
+            .AddMembers(activityInterfaces.ToArray());
+    }
 
-        var members = activityProperties
-            .AsEnumerable<MemberDeclarationSyntax>()
-            .Concat(activityInterfaces)
-            .Append(orchestrationInterface)
-            .ToArray();
+    private static InterfaceDeclarationSyntax BuildOrchestrationInterface(TaskInfo orchestration)
+    {
+        var type = $"{nameof(IDurableOrchestration<int, int>)}" +
+            $"<{orchestration.ReturnType}, {orchestration.InputType}>";
 
         return SyntaxFactory
             .InterfaceDeclaration($"I{orchestration.Name}")
-            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-            .WithBaseList(SyntaxFactory.BaseList(
-                SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
-                SyntaxFactory.SimpleBaseType(
-                SyntaxFactory.ParseTypeName(
-                    $"{nameof(IOrchestrationBlueprint)}"))))
-            )
-            .AddMembers(members);
-    }
-
-    private const string _orchestrationInterfaceName = "IOrchestration";
-    private static InterfaceDeclarationSyntax BuildOrchestrationInterface(OrchestrationInfo orchestration)
-    {
-        var type = $"{nameof(ITaskOrchestration<int, int, IOrchestrationBlueprint>)}" +
-            $"<{orchestration.ReturnType}, {orchestration.InputType}, I{orchestration.Name}>";
-
-        return SyntaxFactory
-            .InterfaceDeclaration(_orchestrationInterfaceName)
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             .WithBaseList(SyntaxFactory.BaseList(
                 SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
@@ -75,29 +70,12 @@ public static class OrchestrationBlueprintBuilder
             );
     }
 
-    private static IEnumerable<PropertyDeclarationSyntax> BuildActivityProperties(
-        IEnumerable<OrchestrationInfo> activities)
-    {
-        foreach (var activity in activities)
-        {
-            var type = $"{nameof(ITaskActivity<int, int>)}<{activity.ReturnType}, {activity.InputType}>";
-
-            yield return SyntaxFactory.PropertyDeclaration(
-                SyntaxFactory.ParseTypeName(type), activity.Name)
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
-                     SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))))
-                 );
-        }
-    }
-
     private static IEnumerable<InterfaceDeclarationSyntax> BuildActivityInterfaces(
-        IEnumerable<OrchestrationInfo> activities)
+        IEnumerable<TaskInfo> activities)
     {
         foreach (var activity in activities)
         {
-            var type = $"{nameof(ITaskActivity<int, int>)}<{activity.ReturnType}, {activity.InputType}>";
+            var type = $"{nameof(IDurableActivity<int, int>)}<{activity.ReturnType}, {activity.InputType}>";
 
             yield return SyntaxFactory
                  .InterfaceDeclaration($"I{activity.Name}")

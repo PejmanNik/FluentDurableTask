@@ -9,12 +9,12 @@ namespace FluentDurableTask.SourceGenerator;
 public static class DurableOrchestrationsPropertyBuilder
 {
     public static IEnumerable<MemberDeclarationSyntax> Build(
-        IEnumerable<OrchestrationDefinition> orchestrationDefinitions)
+        IEnumerable<OrchestrationInfo> orchestrationDefinitions)
     {
         foreach (var orchestrationDefinition in orchestrationDefinitions)
         {
             var orchestration = orchestrationDefinition
-                .OrchestrationsInfo
+                .TasksInfo
                 .FirstOrDefault(x => x.MethodName == nameof(ITaskOrchestrationBuilder.Orchestration));
 
             if (orchestration is null)

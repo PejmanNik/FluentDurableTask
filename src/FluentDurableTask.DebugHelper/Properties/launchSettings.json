@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "FluentDurableTask.DebugHelper": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53712;http://localhost:53713"
+    }
+  }
+}
